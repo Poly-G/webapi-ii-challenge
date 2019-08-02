@@ -58,22 +58,37 @@ router.get("/", async (req, res) => {
   }
 });
 
-// send a GET request to /:id/comments to get all the comments
-router.get("/:id/comments", async (req, res) => {
+// send a GET request to /:id/posts to get a specific post
+router.get("/:id", (req, res) => {
   const { id } = req.params;
-  console.log(id);
-  db.findPostComments(id).then(comments =>
-    comments
-      ? res.status(200).json(comments)
-      : res
-          .status(500)
-          .json({ error: `The comment with the specified ID does not exist` })
-          .catch(err =>
-            res.status(500).json({
-              error: `The user information could not be retrieved ${err}`
-            })
-          )
-  );
+  db.findById(id)
+    .then(posts => res.status(200).json(posts))
+    .catch(err =>
+      res
+        .status(500)
+        .json({ error: `The posts information could not be retrieved ${err}` })
+    );
+});
+
+// send a GET request to /:id/comments to get a specific comments
+router.get("/:id/comments", async (req, res) => {
+  try {
+    const comment = await db.findById(req.params.id);
+
+    if (comment) {
+      res.status(200).json(comment);
+    } else {
+      res
+        .status(404)
+        .json({ message: "The post with the specified ID does not exist." });
+    }
+  } catch (error) {
+    // log error to database
+    console.log(error);
+    res.status(500).json({
+      error: "The comments information could not be retrieved."
+    });
+  }
 });
 
 module.exports = router;
