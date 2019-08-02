@@ -3,8 +3,8 @@ const db = require("../data/db.js");
 
 const router = express.Router();
 
-// send a POST request to /api/posts to create a new post
-router.post("/api/posts", (req, res) => {
+// send a POST request to / to create a new post
+router.post("/", (req, res) => {
   const { title, contents } = req.body;
 
   if (!title || !contents) {
@@ -25,7 +25,7 @@ router.post("/api/posts", (req, res) => {
   }
 });
 
-// send a POST request to /api/posts/:id/comments to add a comment to the post
+// send a POST request to /:id/comments to add a comment to the post
 router.post("/:id/comments", (req, res) => {
   const comment = { ...req.body, post_id: req.params.id };
   if (!req.body.text) {
@@ -44,7 +44,7 @@ router.post("/:id/comments", (req, res) => {
   }
 });
 
-// send a GET request to /api/posts to read all posts
+// send a GET request to /s to read all posts
 router.get("/", async (req, res) => {
   try {
     const posts = await db.find(req.body);
@@ -56,6 +56,24 @@ router.get("/", async (req, res) => {
       message: "The posts information could not be retrieved."
     });
   }
+});
+
+// send a GET request to /:id/comments to get all the comments
+router.get("/:id/comments", async (req, res) => {
+  const { id } = req.params;
+  console.log(id);
+  db.findPostComments(id).then(comments =>
+    comments
+      ? res.status(200).json(comments)
+      : res
+          .status(500)
+          .json({ error: `The comment with the specified ID does not exist` })
+          .catch(err =>
+            res.status(500).json({
+              error: `The user information could not be retrieved ${err}`
+            })
+          )
+  );
 });
 
 module.exports = router;
